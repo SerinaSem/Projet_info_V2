@@ -19,17 +19,22 @@ const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
   const [role, setRole] = useState('employe');
+  const [codeEmployeur, setCodeEmployeur] = useState('');
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://127.0.0.1:5000/login', {
-        email,
-        mot_de_passe: motDePasse,
-        role: role,
-      });
+      const payload = role === 'employeur'
+        ? { code: codeEmployeur, role }
+        : { email, mot_de_passe: motDePasse, role };
+
+      const response = await axios.post('http://127.0.0.1:5000/login', payload);
 
       if (response.data.success) {
-        navigation.navigate('Planning', { employe: response.data.employe });
+        if (role === 'employe') {
+          navigation.navigate('Planning', { employe: response.data.employe });
+        } else {
+          navigation.navigate('EmployeurDashboard');
+        }
       } else {
         Alert.alert('Erreur', response.data.message);
       }
@@ -63,21 +68,35 @@ const LoginScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#888"
-          value={email}
-          onChangeText={setEmail}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Mot de passe"
-          placeholderTextColor="#888"
-          secureTextEntry
-          value={motDePasse}
-          onChangeText={setMotDePasse}
-        />
+        {role === 'employe' ? (
+          <>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor="#888"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Mot de passe"
+              placeholderTextColor="#888"
+              secureTextEntry
+              value={motDePasse}
+              onChangeText={setMotDePasse}
+            />
+          </>
+        ) : (
+          <TextInput
+            style={styles.input}
+            placeholder="Code employeur"
+            placeholderTextColor="#888"
+            secureTextEntry
+            value={codeEmployeur}
+            onChangeText={setCodeEmployeur}
+          />
+        )}
+
         <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
           <Text style={styles.loginButtonText}>Se connecter</Text>
         </TouchableOpacity>
@@ -132,12 +151,22 @@ const PlanningScreen = ({ route }) => {
   );
 };
 
+const EmployeurDashboard = () => {
+  return (
+    <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ fontSize: 20 }}>Bienvenue dans l'espace employeur !</Text>
+      {/* On ajoutera le tableau ici à l'étape suivante */}
+    </SafeAreaView>
+  );
+};
+
 export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: true }}>
         <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Connexion' }} />
         <Stack.Screen name="Planning" component={PlanningScreen} options={{ title: 'Planning' }} />
+        <Stack.Screen name="EmployeurDashboard" component={EmployeurDashboard} options={{ title: 'Tableau employeur' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
