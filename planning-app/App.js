@@ -111,10 +111,9 @@ const PlanningScreen = ({ route }) => {
   const [planning, setPlanning] = useState([]);
 
   useEffect(() => {
-    axios
-      .get(`http://127.0.0.1:5000/planning/${employe.id}`)
-      .then((res) => setPlanning(res.data))
-      .catch(() => Alert.alert('Erreur', 'Impossible de récupérer le planning.'));
+    axios.get(`http://127.0.0.1:5000/planning/${employe.id}`)
+      .then(res => setPlanning(res.data))
+      .catch(() => Alert.alert("Erreur", "Impossible de récupérer le planning."));
   }, []);
 
   return (
@@ -159,41 +158,60 @@ const EmployeurDashboard = () => {
   useEffect(() => {
     axios.get('http://127.0.0.1:5000/planning_global')
       .then(res => setPlanningData(res.data))
-      .catch(() => Alert.alert("Erreur", "Impossible de récupérer le planning global."));
+      .catch(err => Alert.alert("Erreur", "Impossible de récupérer le planning global."));
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1, padding: 10, backgroundColor: '#f5f1e6' }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 15, color: '#5e412f' }}>
-        Planning général du restaurant 🗓️
-      </Text>
-      <ScrollView horizontal>
-        <View>
-          <View style={{ flexDirection: 'row', backgroundColor: '#d4a373' }}>
-            <Text style={styles.tableHeader}>Employé</Text>
-            {jours.map((jour, idx) => (
-              <Text key={idx} style={styles.tableHeader}>{jour}</Text>
-            ))}
-          </View>
-          {planningData.map((emp, i) => (
-            <View key={i} style={{ flexDirection: 'row', backgroundColor: i % 2 === 0 ? '#fff9f0' : '#f0e5d8' }}>
-              <Text style={styles.tableCell}>{emp.prenom} {emp.nom}</Text>
-              {jours.map((jour, j) => (
-                <Text key={j} style={styles.tableCell}>{emp.planning[jour]}</Text>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f1e6' }}>
+      <View style={{ alignItems: 'center', marginTop: 20 }}>
+        <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 15, color: '#5e412f' }}>
+          Planning général du restaurant 🗓️
+        </Text>
+      </View>
+
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ alignItems: 'center' }}>
+        <ScrollView horizontal>
+          <View>
+            {/* En-têtes */}
+            <View style={{ flexDirection: 'row', backgroundColor: '#d4a373' }}>
+              <View style={styles.tableHeaderBox}><Text style={styles.tableHeader}>Employé</Text></View>
+              {jours.map((jour, idx) => (
+                <View key={idx} style={styles.tableHeaderBox}><Text style={styles.tableHeader}>{jour}</Text></View>
               ))}
             </View>
-          ))}
-        </View>
+
+            {/* Lignes */}
+            {planningData.map((emp, i) => (
+              <View key={i} style={{ flexDirection: 'row', backgroundColor: i % 2 === 0 ? '#fff9f0' : '#f0e5d8' }}>
+                <View style={styles.tableCellBox}><Text style={styles.tableCell}>{emp.prenom} {emp.nom}</Text></View>
+                {jours.map((jour, j) => (
+                  <View key={j} style={styles.tableCellBox}>
+                    <Text style={styles.tableCell}>{emp.planning[jour]}</Text>
+                  </View>
+                ))}
+              </View>
+            ))}
+          </View>
+        </ScrollView>
       </ScrollView>
 
-      <View style={{ marginTop: 30, alignItems: 'center' }}>
-        <TouchableOpacity style={styles.actionButton}><Text style={styles.actionText}>➕ Ajouter un employé</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}><Text style={styles.actionText}>✏️ Modifier un employé</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.actionButton}><Text style={styles.actionText}>🗑️ Supprimer un employé</Text></TouchableOpacity>
+      {/* Boutons alignés */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-around', padding: 20, backgroundColor: '#f5f1e6' }}>
+        <TouchableOpacity style={[styles.actionButton, { flex: 1, marginHorizontal: 5 }]}>
+          <Text style={styles.actionText}>➕ Ajouter un employé</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.actionButton, { flex: 1, marginHorizontal: 5 }]}>
+          <Text style={styles.actionText}>✏️ Modifier un employé</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.actionButton, { flex: 1, marginHorizontal: 5 }]}>
+          <Text style={styles.actionText}>🗑️ Supprimer un employé</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 };
+
+
 
 export default function App() {
   return (
@@ -225,4 +243,46 @@ const styles = StyleSheet.create({
   tableCell: { padding: 8, textAlign: 'center', color: '#5e412f', minWidth: 90 },
   actionButton: { backgroundColor: '#d4a373', padding: 10, borderRadius: 15, marginVertical: 5, width: '80%', alignItems: 'center' },
   actionText: { color: '#fff', fontWeight: 'bold' },
+  tableHeaderBox: {
+    width: 110,
+    paddingVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderColor: '#e0d4c3',
+  },
+  tableCellBox: {
+    width: 110,
+    paddingVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderColor: '#e0d4c3',
+  },
+  tableHeaderBox: {
+    width: 110,
+    paddingVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderColor: '#e0d4c3',
+  },
+  tableCellBox: {
+    width: 110,
+    paddingVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderColor: '#e0d4c3',
+  },
+  actionButton: {
+    backgroundColor: '#d4a373',
+    padding: 10,
+    borderRadius: 15,
+    alignItems: 'center',
+  },
+  actionText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  }
 });
