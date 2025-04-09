@@ -151,7 +151,7 @@ const PlanningScreen = ({ route }) => {
   );
 };
 
-const EmployeurDashboard = () => {
+const EmployeurDashboard = ({ navigation }) => {
   const [planningData, setPlanningData] = useState([]);
   const jours = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
@@ -197,13 +197,24 @@ const EmployeurDashboard = () => {
 
       {/* Boutons alignés */}
       <View style={{ flexDirection: 'row', justifyContent: 'space-around', padding: 20, backgroundColor: '#f5f1e6' }}>
-        <TouchableOpacity style={[styles.actionButton, { flex: 1, marginHorizontal: 5 }]}>
+        <TouchableOpacity
+          style={[styles.actionButton, { flex: 1, marginHorizontal: 5 }]}
+          onPress={() => navigation.navigate('AddEmployee')}
+        >
           <Text style={styles.actionText}>➕ Ajouter un employé</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.actionButton, { flex: 1, marginHorizontal: 5 }]}>
+
+        <TouchableOpacity
+          style={[styles.actionButton, { flex: 1, marginHorizontal: 5 }]}
+          onPress={() => navigation.navigate('EditEmployee')}
+        >
           <Text style={styles.actionText}>✏️ Modifier un employé</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.actionButton, { flex: 1, marginHorizontal: 5 }]}>
+
+        <TouchableOpacity
+          style={[styles.actionButton, { flex: 1, marginHorizontal: 5 }]}
+          onPress={() => navigation.navigate('DeleteEmployee')}
+        >
           <Text style={styles.actionText}>🗑️ Supprimer un employé</Text>
         </TouchableOpacity>
       </View>
@@ -213,6 +224,81 @@ const EmployeurDashboard = () => {
 
 
 
+// Écrans pour Ajouter / Modifier / Supprimer
+const AddEmployeeScreen = () => {
+  const [nom, setNom] = useState('');
+  const [prenom, setPrenom] = useState('');
+  const [email, setEmail] = useState('');
+  const [motDePasse, setMotDePasse] = useState('');
+
+  const handleAdd = () => {
+    axios.post('http://127.0.0.1:5000/employes', {
+      nom,
+      prenom,
+      email,
+      mot_de_passe: motDePasse,
+    })
+      .then(() => Alert.alert("Succès", "Employé ajouté !"))
+      .catch(() => Alert.alert("Erreur", "Ajout impossible"));
+  };
+
+  return (
+    <SafeAreaView style={styles.formContainer}>
+      <Text style={styles.title}>➕ Ajouter un employé</Text>
+      <TextInput style={styles.input} placeholder="Nom" value={nom} onChangeText={setNom} />
+      <TextInput style={styles.input} placeholder="Prénom" value={prenom} onChangeText={setPrenom} />
+      <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
+      <TextInput style={styles.input} placeholder="Mot de passe" secureTextEntry value={motDePasse} onChangeText={setMotDePasse} />
+      <TouchableOpacity style={styles.loginButton} onPress={handleAdd}>
+        <Text style={styles.loginButtonText}>Ajouter</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+};
+
+const EditEmployeeScreen = () => {
+  const [id, setId] = useState('');
+  const [email, setEmail] = useState('');
+
+  const handleEdit = () => {
+    axios.put(`http://127.0.0.1:5000/employes/${id}`, { email })
+      .then(() => Alert.alert("Modifié", "Employé mis à jour."))
+      .catch(() => Alert.alert("Erreur", "Modification impossible."));
+  };
+
+  return (
+    <SafeAreaView style={styles.formContainer}>
+      <Text style={styles.title}>✏️ Modifier un employé</Text>
+      <TextInput style={styles.input} placeholder="ID employé" value={id} onChangeText={setId} />
+      <TextInput style={styles.input} placeholder="Nouvel email" value={email} onChangeText={setEmail} />
+      <TouchableOpacity style={styles.loginButton} onPress={handleEdit}>
+        <Text style={styles.loginButtonText}>Modifier</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+};
+
+const DeleteEmployeeScreen = () => {
+  const [id, setId] = useState('');
+
+  const handleDelete = () => {
+    axios.delete(`http://127.0.0.1:5000/employes/${id}`)
+      .then(() => Alert.alert("Supprimé", "Employé supprimé."))
+      .catch(() => Alert.alert("Erreur", "Suppression impossible."));
+  };
+
+  return (
+    <SafeAreaView style={styles.formContainer}>
+      <Text style={styles.title}>🗑️ Supprimer un employé</Text>
+      <TextInput style={styles.input} placeholder="ID employé" value={id} onChangeText={setId} />
+      <TouchableOpacity style={styles.loginButton} onPress={handleDelete}>
+        <Text style={styles.loginButtonText}>Supprimer</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+};
+
+// Navigation principale
 export default function App() {
   return (
     <NavigationContainer>
@@ -220,6 +306,9 @@ export default function App() {
         <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Connexion' }} />
         <Stack.Screen name="Planning" component={PlanningScreen} options={{ title: 'Planning' }} />
         <Stack.Screen name="EmployeurDashboard" component={EmployeurDashboard} options={{ title: 'Tableau employeur' }} />
+        <Stack.Screen name="AddEmployee" component={AddEmployeeScreen} options={{ title: 'Ajouter un employé' }} />
+        <Stack.Screen name="EditEmployee" component={EditEmployeeScreen} options={{ title: 'Modifier un employé' }} />
+        <Stack.Screen name="DeleteEmployee" component={DeleteEmployeeScreen} options={{ title: 'Supprimer un employé' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -284,5 +373,38 @@ const styles = StyleSheet.create({
   actionText: {
     color: '#fff',
     fontWeight: 'bold',
-  }
+  },
+    formContainer: {
+      flex: 1,
+      backgroundColor: '#f5f1e6',
+      padding: 20,
+      justifyContent: 'center'
+    },
+    title: {
+      fontSize: 26,
+      fontWeight: 'bold',
+      marginBottom: 20,
+      color: '#5e412f',
+      textAlign: 'center'
+    },
+    input: {
+      borderWidth: 1,
+      borderColor: '#ccc',
+      borderRadius: 25,
+      padding: 12,
+      marginBottom: 15,
+      paddingHorizontal: 20,
+      backgroundColor: '#fff',
+    },
+    loginButton: {
+      backgroundColor: '#d4a373',
+      padding: 15,
+      borderRadius: 25,
+      alignItems: 'center',
+      marginTop: 10,
+    },
+    loginButtonText: {
+      color: '#fff',
+      fontWeight: 'bold',
+    },
 });
