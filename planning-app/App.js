@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Alert,
   SafeAreaView,
+  ScrollView,
 } from 'react-native';
 import axios from 'axios';
 import { NavigationContainer } from '@react-navigation/native';
@@ -113,7 +114,7 @@ const PlanningScreen = ({ route }) => {
     axios
       .get(`http://127.0.0.1:5000/planning/${employe.id}`)
       .then((res) => setPlanning(res.data))
-      .catch((err) => Alert.alert('Erreur', 'Impossible de récupérer le planning.'));
+      .catch(() => Alert.alert('Erreur', 'Impossible de récupérer le planning.'));
   }, []);
 
   return (
@@ -152,10 +153,44 @@ const PlanningScreen = ({ route }) => {
 };
 
 const EmployeurDashboard = () => {
+  const [planningData, setPlanningData] = useState([]);
+  const jours = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+
+  useEffect(() => {
+    axios.get('http://127.0.0.1:5000/planning_global')
+      .then(res => setPlanningData(res.data))
+      .catch(() => Alert.alert("Erreur", "Impossible de récupérer le planning global."));
+  }, []);
+
   return (
-    <SafeAreaView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ fontSize: 20 }}>Bienvenue dans l'espace employeur !</Text>
-      {/* On ajoutera le tableau ici à l'étape suivante */}
+    <SafeAreaView style={{ flex: 1, padding: 10, backgroundColor: '#f5f1e6' }}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 15, color: '#5e412f' }}>
+        Planning général du restaurant 🗓️
+      </Text>
+      <ScrollView horizontal>
+        <View>
+          <View style={{ flexDirection: 'row', backgroundColor: '#d4a373' }}>
+            <Text style={styles.tableHeader}>Employé</Text>
+            {jours.map((jour, idx) => (
+              <Text key={idx} style={styles.tableHeader}>{jour}</Text>
+            ))}
+          </View>
+          {planningData.map((emp, i) => (
+            <View key={i} style={{ flexDirection: 'row', backgroundColor: i % 2 === 0 ? '#fff9f0' : '#f0e5d8' }}>
+              <Text style={styles.tableCell}>{emp.prenom} {emp.nom}</Text>
+              {jours.map((jour, j) => (
+                <Text key={j} style={styles.tableCell}>{emp.planning[jour]}</Text>
+              ))}
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+
+      <View style={{ marginTop: 30, alignItems: 'center' }}>
+        <TouchableOpacity style={styles.actionButton}><Text style={styles.actionText}>➕ Ajouter un employé</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.actionButton}><Text style={styles.actionText}>✏️ Modifier un employé</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.actionButton}><Text style={styles.actionText}>🗑️ Supprimer un employé</Text></TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -173,91 +208,21 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    flex: 1,
-    backgroundColor: '#f5f1e6',
-  },
-  leftPane: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fbeacc',
-    padding: 20,
-  },
-  image: {
-    width: '100%',
-    height: '80%',
-  },
-  rightPane: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 40,
-    backgroundColor: '#fff9f0',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: '#5e412f',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#5e412f',
-    marginBottom: 30,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 25,
-    padding: 12,
-    marginBottom: 15,
-    paddingHorizontal: 20,
-    backgroundColor: '#fff',
-  },
-  loginButton: {
-    backgroundColor: '#d4a373',
-    padding: 15,
-    borderRadius: 25,
-    alignItems: 'center',
-    marginTop: 10,
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  roleSwitch: {
-    flexDirection: 'row',
-    marginBottom: 15,
-    justifyContent: 'center',
-  },
-  roleButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginHorizontal: 5,
-    backgroundColor: '#f0e5d8',
-  },
-  selectedRole: {
-    backgroundColor: '#d4a373',
-    borderColor: '#d4a373',
-  },
-  roleText: {
-    color: '#333',
-    fontWeight: 'bold',
-  },
-  tableHeader: {
-    flex: 1,
-    fontWeight: 'bold',
-    padding: 10,
-    color: '#fff',
-    textAlign: 'center',
-  },
-  tableCell: {
-    flex: 1,
-    textAlign: 'center',
-    color: '#5e412f',
-  },
+  container: { flexDirection: 'row', flex: 1, backgroundColor: '#f5f1e6' },
+  leftPane: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fbeacc', padding: 20 },
+  image: { width: '100%', height: '80%' },
+  rightPane: { flex: 1, justifyContent: 'center', paddingHorizontal: 40, backgroundColor: '#fff9f0' },
+  title: { fontSize: 28, fontWeight: 'bold', marginBottom: 10, color: '#5e412f' },
+  subtitle: { fontSize: 16, color: '#5e412f', marginBottom: 30 },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 25, padding: 12, marginBottom: 15, paddingHorizontal: 20, backgroundColor: '#fff' },
+  loginButton: { backgroundColor: '#d4a373', padding: 15, borderRadius: 25, alignItems: 'center', marginTop: 10 },
+  loginButtonText: { color: '#fff', fontWeight: 'bold' },
+  roleSwitch: { flexDirection: 'row', marginBottom: 15, justifyContent: 'center' },
+  roleButton: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: '#ccc', marginHorizontal: 5, backgroundColor: '#f0e5d8' },
+  selectedRole: { backgroundColor: '#d4a373', borderColor: '#d4a373' },
+  roleText: { color: '#333', fontWeight: 'bold' },
+  tableHeader: { padding: 10, fontWeight: 'bold', textAlign: 'center', color: '#fff', minWidth: 90 },
+  tableCell: { padding: 8, textAlign: 'center', color: '#5e412f', minWidth: 90 },
+  actionButton: { backgroundColor: '#d4a373', padding: 10, borderRadius: 15, marginVertical: 5, width: '80%', alignItems: 'center' },
+  actionText: { color: '#fff', fontWeight: 'bold' },
 });

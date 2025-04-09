@@ -24,16 +24,27 @@ def get_db():
 
 # ===== ROUTES =====
 
-@app.route("/login", methods=["POST"])
+@app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
+    role = data.get('role')
+
+    if role == 'employeur':
+        # Vérification du code employeur
+        code = data.get('code')
+        if code == '123456789':
+            return jsonify({"success": True, "employeur": True})
+        else:
+            return jsonify({"success": False, "message": "Code employeur incorrect."})
+
+    # Sinon on fait la connexion normale employé
     email = data.get("email")
     mot_de_passe = data.get("mot_de_passe")
 
     session = SessionLocal()
     try:
         employe = session.query(Employe).filter_by(email=email).first()
-        if employe and employe.mot_de_passe and bcrypt.checkpw(mot_de_passe.encode('utf-8'), employe.mot_de_passe.encode('utf-8')):
+        if employe and bcrypt.checkpw(mot_de_passe.encode(), employe.mot_de_passe.encode()):
             return jsonify({
                 "success": True,
                 "employe": {
@@ -45,9 +56,10 @@ def login():
                 }
             })
         else:
-            return jsonify({"success": False, "message": "Email ou mot de passe invalide."}), 401
+            return jsonify({"success": False, "message": "Email ou mot de passe incorrect."})
     finally:
         session.close()
+
 
 
 @app.route("/planning/<int:id_employe>", methods=["GET"])
@@ -114,6 +126,33 @@ def get_besoins():
             "heure_fin": b.heure_fin,
             "nb_employes": b.nb_employes
         } for b in besoins])
+    finally:
+        session.close()
+
+@app.route("/planning_global", methods=["GET"])
+def get_planning_global():
+    session = SessionLocal()
+    try:
+        horaires = session.query(Horaire).all()
+        employes = session.query(Employe).all()
+
+        # Structure : { employe_id: { "nom": ..., "prenom": ..., "jours": { "Lundi": "...", "Mardi": "..." } } }
+        result = []
+        jours_semaine = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+
+        for e in employes:
+            planning_employe = {jour: "Repos" for jour in jours_semaine}
+            for h in horaires:
+                if h.id_employe == e.id:
+                    planning_employe[h.jour] = f"{h.heure_debut} - {h.heure_fin}"
+            result.append({
+                "nom": e.nom,
+                "prenom": e.prenom,
+                "planning": planning_employe
+            })
+
+        return jsonify(result)
+
     finally:
         session.close()
 
