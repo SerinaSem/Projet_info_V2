@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,43 +7,41 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  SafeAreaView
+  SafeAreaView,
 } from 'react-native';
 import axios from 'axios';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-export default function App() {
+const Stack = createNativeStackNavigator();
+
+const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [motDePasse, setMotDePasse] = useState('');
   const [role, setRole] = useState('employe');
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post('http://10.188.51.157:5000/login', {
+      const response = await axios.post('http://127.0.0.1:5000/login', {
         email,
         mot_de_passe: motDePasse,
-        role: role, // si besoin côté backend
+        role: role,
       });
 
       if (response.data.success) {
-        const { nom, prenom } = response.data.employe;
-        Alert.alert('Connexion réussie', `Bienvenue ${prenom} ${nom}`);
-        // Ici on pourra rediriger vers l'écran du planning
+        navigation.navigate('Planning', { employe: response.data.employe });
       } else {
         Alert.alert('Erreur', response.data.message);
       }
     } catch (err) {
-      Alert.alert('Erreur', "Impossible de se connecter au serveur.");
+      Alert.alert('Erreur', 'Impossible de se connecter au serveur.');
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.leftPane}>
-        <Image
-          source={require('./assets/login_illustration.png')}
-          style={styles.image}
-          resizeMode="contain"
-        />
+        <Image source={require('./assets/login_illustration.png')} style={styles.image} resizeMode="contain" />
       </View>
 
       <View style={styles.rightPane}>
@@ -85,6 +83,63 @@ export default function App() {
         </TouchableOpacity>
       </View>
     </SafeAreaView>
+  );
+};
+
+const PlanningScreen = ({ route }) => {
+  const { employe } = route.params;
+  const [planning, setPlanning] = useState([]);
+
+  useEffect(() => {
+    axios
+      .get(`http://127.0.0.1:5000/planning/${employe.id}`)
+      .then((res) => setPlanning(res.data))
+      .catch((err) => Alert.alert('Erreur', 'Impossible de récupérer le planning.'));
+  }, []);
+
+  return (
+    <SafeAreaView style={{ flex: 1, padding: 20, backgroundColor: '#f5f1e6' }}>
+      <Text style={{ fontSize: 26, fontWeight: 'bold', marginBottom: 10, color: '#5e412f' }}>
+        Bonjour {employe.prenom} 👋
+      </Text>
+      <Text style={{ fontSize: 16, marginBottom: 20, color: '#5e412f' }}>
+        Voici ton planning de la semaine. Bon courage 💪 et bonne énergie pour chaque service !
+      </Text>
+
+      <View style={{ backgroundColor: '#fff', borderRadius: 10, overflow: 'hidden' }}>
+        <View style={{ flexDirection: 'row', backgroundColor: '#d4a373' }}>
+          <Text style={styles.tableHeader}>Jour</Text>
+          <Text style={styles.tableHeader}>Heure début</Text>
+          <Text style={styles.tableHeader}>Heure fin</Text>
+        </View>
+        {planning.map((h, index) => (
+          <View
+            key={index}
+            style={{
+              flexDirection: 'row',
+              backgroundColor: index % 2 === 0 ? '#fff9f0' : '#f0e5d8',
+              paddingVertical: 10,
+              paddingHorizontal: 5,
+            }}
+          >
+            <Text style={styles.tableCell}>{h.jour}</Text>
+            <Text style={styles.tableCell}>{h.heure_debut}</Text>
+            <Text style={styles.tableCell}>{h.heure_fin}</Text>
+          </View>
+        ))}
+      </View>
+    </SafeAreaView>
+  );
+};
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: true }}>
+        <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'Connexion' }} />
+        <Stack.Screen name="Planning" component={PlanningScreen} options={{ title: 'Planning' }} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
@@ -163,5 +218,17 @@ const styles = StyleSheet.create({
   roleText: {
     color: '#333',
     fontWeight: 'bold',
+  },
+  tableHeader: {
+    flex: 1,
+    fontWeight: 'bold',
+    padding: 10,
+    color: '#fff',
+    textAlign: 'center',
+  },
+  tableCell: {
+    flex: 1,
+    textAlign: 'center',
+    color: '#5e412f',
   },
 });
