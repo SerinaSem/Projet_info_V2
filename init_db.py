@@ -17,9 +17,9 @@ class Employe(Base):
     nom = Column(String, nullable=False)
     prenom = Column(String, nullable=False)
     email = Column(String)
-    mot_de_passe = Column(String)
     contrat_heures = Column(Integer, nullable=False)
     id_restaurant = Column(Integer, ForeignKey('restaurant.id'))
+    mot_de_passe = Column(String, nullable=False)
     restaurant = relationship("Restaurant", back_populates="employes")
 
 class Disponibilite(Base):
@@ -50,7 +50,7 @@ class Horaire(Base):
 Restaurant.employes = relationship("Employe", order_by=Employe.id, back_populates="restaurant")
 
 # Configuration de la base de données
-DATABASE_URL = "postgresql://your_username:your_password@localhost/planning_resto"
+DATABASE_URL = "sqlite:///planning_resto.db"
 engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

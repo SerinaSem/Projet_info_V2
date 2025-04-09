@@ -8,9 +8,9 @@ def ajouter_employe(employe: Employe):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("""
-        INSERT INTO employe (nom, prenom, email, contrat_heures, id_restaurant)
-        VALUES (?, ?, ?, ?, ?)
-    """, (employe.nom, employe.prenom, employe.email, employe.contrat_heures, employe.id_restaurant))
+        INSERT INTO employe (nom, prenom, email, contrat_heures, id_restaurant, mot_de_passe)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (employe.nom, employe.prenom, employe.email, employe.contrat_heures, employe.id_restaurant, employe.mot_de_passe))
     conn.commit()
     conn.close()
     print(f"✅ Employé {employe.nom} ajouté avec succès.")
